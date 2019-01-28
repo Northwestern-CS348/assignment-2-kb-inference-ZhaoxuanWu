@@ -128,6 +128,51 @@ class KnowledgeBase(object):
         printv("Retracting {!r}", 0, verbose, [fact_or_rule])
         ####################################################
         # Student code goes here
+        # if isinstance(fact_or_rule, Rule):
+        #     print("Cannot retract a rule")
+        # elif isinstance(fact_or_rule, Fact):
+
+        if not isinstance(fact_or_rule, Fact) and not isinstance(fact_or_rule, Rule):
+            print("Only retracting a Fact or a Rule is allowed")
+            return
+        if isinstance(fact_or_rule, Rule):
+            for rule in self.rules:
+                if rule == fact_or_rule:
+                    fact_or_rule = rule
+                    break
+            else:
+                print('Rule not present')
+                return
+        elif isinstance(fact_or_rule, Fact):
+            for fact in self.facts:
+                if fact == fact_or_rule:
+                    fact_or_rule = fact
+                    break
+            else:
+                print('Fact not present')
+                return
+        if fact_or_rule.supported_by:
+            print("Cannot retract a supported fact or rule")
+            return
+        if isinstance(fact_or_rule, Rule) and fact_or_rule.asserted:
+            print("Cannot retract an asserted rule")
+            return
+        self.facts.remove(fact_or_rule) if isinstance(fact_or_rule, Fact) else self.rules.remove(fact_or_rule)
+        for fact in fact_or_rule.supports_facts:
+            print('each fact', fact)
+            for pair in fact.supported_by:
+                if fact_or_rule in pair:
+                    fact.supported_by.remove(pair)
+            self.kb_retract(fact)
+        for rule in fact_or_rule.supports_rules:
+            print('each rule', rule)
+            for pair in rule.supported_by:
+                if fact_or_rule in pair:
+                    rule.supported_by.remove(pair)
+            self.kb_retract(rule)
+
+
+
         
 
 class InferenceEngine(object):
@@ -146,3 +191,32 @@ class InferenceEngine(object):
             [fact.statement, rule.lhs, rule.rhs])
         ####################################################
         # Student code goes here
+        binding = match(rule.lhs[0], fact.statement)
+        if binding:
+            print(len(rule.lhs))
+            if len(rule.lhs) == 1:
+                new_fact = Fact(instantiate(rule.rhs, binding), [(fact, rule)])
+                rule.supports_facts.append(new_fact)
+                fact.supports_facts.append(new_fact)
+                print('Adding a new fact:')
+                print(new_fact)
+                kb.kb_assert(new_fact)
+            else:
+                print('Adding a new rule:')
+                lhs_list = [instantiate(element, binding) for element in rule.lhs[1:]]
+                rhs = instantiate(rule.rhs, binding)
+                # print('lhs_list', lhs_list)
+                # print('rhs', rule.rhs)
+                new_rule = Rule([lhs_list, rhs], [(fact, rule)])
+                print(new_rule)
+                rule.supports_rules.append(new_rule)
+                fact.supports_rules.append(new_rule)
+                kb.kb_assert(new_rule)
+                # print(instantiate(rule.lhs[1:], binding))
+
+
+            # print('statement', fact.statement)
+            # print('terms', fact.statement.terms)
+            # print('binding', binding)
+            # ins = instantiate(fact.statement, binding)
+            # print("ins", ins)
