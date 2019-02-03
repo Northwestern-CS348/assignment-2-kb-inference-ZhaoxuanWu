@@ -130,9 +130,6 @@ class KnowledgeBase(object):
         printv("Retracting {!r}", 0, verbose, [fact_or_rule])
         ####################################################
         # Student code goes here
-        # if isinstance(fact_or_rule, Rule):
-        #     print("Cannot retract a rule")
-        # elif isinstance(fact_or_rule, Fact):
 
         if not isinstance(fact_or_rule, Fact) and not isinstance(fact_or_rule, Rule):
             print("Only retracting a Fact or a Rule is allowed")
@@ -165,20 +162,15 @@ class KnowledgeBase(object):
             for pair in fact.supported_by:
                 if fact_or_rule in pair:
                     self._get_fact(fact).supported_by.remove(pair)
-                    # fact.supported_by.remove(pair)
-                    print("new Fact after removing", fact)
+                    # print("new Fact after removing", fact)
             self.kb_retract(fact)
         for rule in fact_or_rule.supports_rules:
             print(fact_or_rule, 'supports each rule', rule)
             for pair in rule.supported_by:
                 if fact_or_rule in pair:
                     self._get_rule(rule).supported_by.remove(pair)
-                    # rule.supported_by.remove(pair)
             self.kb_retract(rule)
 
-
-
-        
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
